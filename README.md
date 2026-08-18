@@ -30,10 +30,4 @@ O **AgroMeteo** é uma aplicação web focada em fornecer dados meteorológicos 
 
 ---
 
-##  Como Executar o Projeto
 
-Como o AgroMeteo é uma aplicação *client-side* pura, não há necessidade de instalação de dependências ou servidores:
-
-1. Clone este repositório:
-   ```bash
-   git clone [https://github.com/pedrobuture-ship-it/Agrometeo.git](https://github.com/pedrobuture-ship-it/Agrometeo.git)
