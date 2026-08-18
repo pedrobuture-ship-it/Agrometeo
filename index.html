@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroMeteo</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        :root {
+            --bg-color: #F5F5F7; /* Apple system gray background */
+            --primary-blue: #007AFF; /* iOS Blue */
+            --danger-red: #FF3B30; /* iOS Red */
+            --warning-orange: #FF9500; /* iOS Orange */
+            --text-main: #1D1D1F; /* Apple dark text */
+            --text-light: #86868B; /* Apple secondary text */
+            --card-bg: #FFFFFF;
+            --border-color: rgba(0, 0, 0, 0.05);
+            --item-bg: #F2F2F7;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Glassmorphism Header */
+        header {
+            position: relative;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 10;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        header h1 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            color: var(--text-main);
+        }
+
+        .header-links {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 0.85rem;
+        }
+
+        .header-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.2s ease, opacity 0.2s ease;
+            font-weight: 500;
+        }
+
+        .header-links a:hover {
+            color: var(--primary-blue);
+        }
+
+        .github-badge {
+            background: var(--text-main);
+            color: #ffffff !important;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .github-badge:hover {
+            opacity: 0.85;
+            color: #ffffff !important;
+        }
+
+        #container { 
+            display: flex; 
+            flex: 1; 
+            overflow: hidden; 
+        }
+        
+        #map { 
+            flex: 1; 
+            height: 100%; 
+            background: #aad3df; /* Fundo suave para os limites do mapa */
+        }
+
+        #sidebar {
+            width: 520px;
+            background: var(--bg-color);
+            padding: 24px;
+            overflow-y: auto;
+            box-shadow: -1px 0 0 var(--border-color);
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #sidebar-content {
+            flex: 1;
+        }
+
+        .sidebar-footer {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.8rem;
+            color: var(--text-light);
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .sidebar-footer a {
+            color: var(--primary-blue);
+            text-decoration: none;
+        }
+
+        .sidebar-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Scrollbar */
+        #sidebar::-webkit-scrollbar { width: 8px; }
+        #sidebar::-webkit-scrollbar-thumb { 
+            background: rgba(0, 0, 0, 0.15); 
+            border-radius: 10px; 
+        }
+        #sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        #location-title {
+            font-weight: 700;
+            font-size: 1.4rem;
+            margin-top: 0;
+            margin-bottom: 20px;
+            letter-spacing: -0.5px;
+        }
+
+        .loading {
+            text-align: center;
+            margin-top: 40px;
+            font-weight: 500;
+            color: var(--text-light);
+        }
+
+        .day-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+            border: 1px solid var(--border-color);
+        }
+
+        .day-card h3 {
+            margin: 0 0 20px 0;
+            color: var(--text-main);
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 20px 0 10px 0;
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .data-item {
+            background: var(--item-bg);
+            padding: 12px;
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: background 0.2s ease;
+        }
+
+        .data-item:hover {
+            background: #E5E5EA;
+        }
+
+        .data-item span {
+            color: var(--text-light);
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .data-item strong {
+            color: var(--text-main);
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: -0.2px;
+        }
+
+        .alert-cape {
+            color: var(--danger-red) !important;
+        }
+
+        .coord-info {
+            background: var(--primary-blue);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            font-weight: 500;
+            box-shadow: 0 10px 20px rgba(0, 122, 255, 0.2);
+        }
+
+        .coord-info strong {
+            font-weight: 600;
+            opacity: 0.9;
+            display: block;
+            margin-bottom: 4px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .export-btn {
+            background: var(--card-bg);
+            color: var(--primary-blue);
+            border: 1.5px solid var(--primary-blue);
+            padding: 12px 18px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 24px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .export-btn:hover {
+            background: var(--primary-blue);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
+        }
+
+        /* Responsividade para Dispositivos Móveis */
+        @media (max-width: 768px) {
+            body {
+                height: auto;
+                min-height: 100vh;
+            }
+
+            header {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+                padding: 12px 16px;
+            }
+
+            #container {
+                flex-direction: column;
+                overflow: visible;
+            }
+
+            #map {
+                height: 350px;
+                min-height: 350px;
+                flex: none;
+            }
+
+            #sidebar {
+                width: 100%;
+                box-shadow: none;
+                overflow-y: visible;
+                padding: 16px;
+            }
+
+            .data-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>AgroMeteo</h1>
+        <div class="header-links">
+            <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">
+                <span>⚡ Dados por Open-Meteo</span>
+            </a>
+            <a href="https://github.com/pedrobuture-ship-it/Agrometeo" target="_blank" rel="noopener noreferrer" class="github-badge">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                </svg>
+                GitHub • Pedro Buture
+            </a>
+        </div>
+    </header>
+
+    <div id="container">
+        <div id="map"></div>
+        <div id="sidebar">
+            <div id="sidebar-content">
+                <h2 id="location-title">Análise de Ponto</h2>
+                <div id="results">
+                    <p style="color: var(--text-light); line-height: 1.5;">Toque ou clique no mapa para carregar os parâmetros atmosféricos e de solo detalhados do local.</p>
+                </div>
+            </div>
+            <div class="sidebar-footer">
+                Dados meteorológicos fornecidos por <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>.<br>
+                Desenvolvido por Pedro Buture • Código no <a href="https://github.com/pedrobuture-ship-it/Agrometeo" target="_blank" rel="noopener noreferrer">GitHub</a>.
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+        let currentForecastData = null;
+
+        // Limites geográficos estritos do mapa-múndi
+        const southWest = L.latLng(-89.98155760646617, -180);
+        const northEast = L.latLng(89.99346179532475, 180);
+        const bounds = L.latLngBounds(southWest, northEast);
+
+        const map = L.map('map', {
+            maxBounds: bounds,
+            maxBoundsViscosity: 1.0,
+            minZoom: 2
+        }).setView([-25.09, -50.16], 6);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap | &copy; <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a>',
+            noWrap: true,
+            bounds: bounds
+        }).addTo(map);
+
+        let marker;
+
+        map.on('click', function(e) {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+
+            if (marker) map.removeLayer(marker);
+            marker = L.marker([lat, lng]).addTo(map);
+
+            document.getElementById('location-title').innerText = "Processando Dados...";
+            document.getElementById('results').innerHTML = `<p class="loading">Baixando variáveis do satélite...</p>`;
+
+            fetchFullData(lat, lng);
+        });
+
+        function getWindDirection(degree) {
+            const dirs = ['N', 'NE', 'L', 'SE', 'S', 'SO', 'O', 'NO'];
+            return dirs[Math.round(((degree %= 360) < 0 ? degree + 360 : degree) / 45) % 8];
+        }
+
+        async function fetchFullData(lat, lng) {
+            const daily = [
+                'temperature_2m_max', 'temperature_2m_min', 'precipitation_sum',
+                'precipitation_probability_max', 'et0_fao_evapotranspiration', 
+                'windspeed_10m_max', 'windgusts_10m_max', 'winddirection_10m_dominant',
+                'shortwave_radiation_sum', 'uv_index_max'
+            ].join(',');
+
+            const hourly = [
+                'relative_humidity_2m', 'surface_pressure', 'cloudcover', 'cape', 
+                'visibility', 'soil_temperature_0_to_7cm', 'soil_temperature_7_to_28cm',
+                'soil_moisture_0_to_7cm', 'soil_moisture_7_to_28cm'
+            ].join(',');
+
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=${daily}&hourly=${hourly}&timezone=America%2FSao_Paulo`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                currentForecastData = { data, lat, lng };
+                renderDashboard(data, lat, lng);
+            } catch (error) {
+                document.getElementById('results').innerHTML = `<p style="color: var(--danger-red);">Falha ao obter dados: ${error.message}</p>`;
+            }
+        }
+
+        function exportToCSV() {
+            if (!currentForecastData) return;
+            const { data, lat, lng } = currentForecastData;
+            const d = data.daily;
+            const h = data.hourly;
+
+            let csvRows = [];
+            csvRows.push("Data;Temp_Max_C;Temp_Min_C;Precipitacao_mm;Prob_Precipitacao_%;ET0_FAO_mm;Vento_Max_kmh;Umidade_12h_%;CAPE_Jkg;Umidade_Solo_0_7cm_%;Umidade_Solo_7_28cm_%");
+
+            for (let i = 0; i < d.time.length; i++) {
+                const hrIdx = (i * 24) + 12;
+                const row = [
+                    d.time[i],
+                    d.temperature_2m_max[i],
+                    d.temperature_2m_min[i],
+                    d.precipitation_sum[i],
+                    d.precipitation_probability_max[i],
+                    d.et0_fao_evapotranspiration[i],
+                    d.windspeed_10m_max[i],
+                    h.relative_humidity_2m[hrIdx],
+                    h.cape[hrIdx],
+                    (h.soil_moisture_0_to_7cm[hrIdx] * 100).toFixed(1),
+                    (h.soil_moisture_7_to_28cm[hrIdx] * 100).toFixed(1)
+                ].join(";");
+                csvRows.push(row);
+            }
+
+            const blob = new Blob([csvRows.join("\n")], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `AgroMeteo_Relatorio_${lat.toFixed(2)}_${lng.toFixed(2)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function renderDashboard(data, lat, lng) {
+            const d = data.daily;
+            const h = data.hourly;
+            
+            let html = `
+                <div class="coord-info">
+                    <div><strong>📍 Coordenadas</strong>${lat.toFixed(4)}, ${lng.toFixed(4)}</div>
+                    <div style="text-align: right;"><strong>⛰️ Elevação</strong>${data.elevation}m</div>
+                </div>
+                <button onclick="exportToCSV()" class="export-btn">
+                    📊 Exportar Relatório Agrometeorológico (.CSV)
+                </button>
+            `;
+
+            for (let i = 0; i < d.time.length; i++) {
+                const dateObj = new Date(d.time[i] + "T00:00:00");
+                const dateStr = dateObj.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' }).toUpperCase();
+                
+                const hrIdx = (i * 24) + 12; 
+
+                const cape = h.cape[hrIdx];
+                let capeStatus = cape < 500 ? "Baixo" : (cape < 1500 ? "Moderado" : "ALTO");
+                let capeClass = cape >= 1500 ? "alert-cape" : "";
+
+                html += `
+                    <div class="day-card">
+                        <h3>🗓️ ${dateStr}</h3>
+                        
+                        <div class="section-title">🌡️ Visão Geral & Atmosfera</div>
+                        <div class="data-grid">
+                            <div class="data-item"><span>Temperatura</span><strong>${d.temperature_2m_max[i]}° / ${d.temperature_2m_min[i]}°</strong></div>
+                            <div class="data-item"><span>Umidade (12h)</span><strong>${h.relative_humidity_2m[hrIdx]}%</strong></div>
+                            <div class="data-item"><span>Pressão Atm.</span><strong>${h.surface_pressure[hrIdx]} hPa</strong></div>
+                        </div>
+
+                        <div class="section-title">⛈️ Chuva & Nuvens</div>
+                        <div class="data-grid">
+                            <div class="data-item"><span>Precipitação</span><strong>${d.precipitation_sum[i]} mm</strong></div>
+                            <div class="data-item"><span>Probabilidade</span><strong>${d.precipitation_probability_max[i]}%</strong></div>
+                            <div class="data-item"><span>Nuvens (12h)</span><strong>${h.cloudcover[hrIdx]}%</strong></div>
+                            <div class="data-item" style="grid-column: span 3;">
+                                <span>Índice CAPE (Risco de Tempestade)</span>
+                                <strong class="${capeClass}">${cape} J/kg - ${capeStatus}</strong>
+                            </div>
+                        </div>
+
+                        <div class="section-title">💨 Vento & Condições</div>
+                        <div class="data-grid">
+                            <div class="data-item"><span>Vento Médio</span><strong>${d.windspeed_10m_max[i]} km/h</strong></div>
+                            <div class="data-item"><span>Rajadas Máx.</span><strong style="color: var(--warning-orange);">${d.windgusts_10m_max[i]} km/h</strong></div>
+                            <div class="data-item"><span>Direção</span><strong>${getWindDirection(d.winddirection_10m_dominant[i])}</strong></div>
+                            <div class="data-item"><span>Visibilidade</span><strong>${(h.visibility[hrIdx] / 1000).toFixed(1)} km</strong></div>
+                            <div class="data-item"><span>Índice UV</span><strong>${d.uv_index_max[i]}</strong></div>
+                            <div class="data-item"><span>Radiação Solar</span><strong>${d.shortwave_radiation_sum[i]} MJ/m²</strong></div>
+                        </div>
+
+                        <div class="section-title">🌱 Agronomia & Solo (0 a 28cm)</div>
+                        <div class="data-grid">
+                            <div class="data-item"><span>ET₀ (Evapotransp.)</span><strong>${d.et0_fao_evapotranspiration[i]} mm</strong></div>
+                            <div class="data-item"><span>Temp Solo 0-7</span><strong>${h.soil_temperature_0_to_7cm[hrIdx]}°C</strong></div>
+                            <div class="data-item"><span>Temp Solo 7-28</span><strong>${h.soil_temperature_7_to_28cm[hrIdx]}°C</strong></div>
+                            <div class="data-item" style="grid-column: span 3; display: flex; flex-direction: row; justify-content: space-around;">
+                                <div style="text-align: center;"><span>Umidade 0-7cm</span><strong>${(h.soil_moisture_0_to_7cm[hrIdx] * 100).toFixed(1)}%</strong></div>
+                                <div style="text-align: center;"><span>Umidade 7-28cm</span><strong>${(h.soil_moisture_7_to_28cm[hrIdx] * 100).toFixed(1)}%</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('location-title').innerText = "Análise Concluída";
+            document.getElementById('results').innerHTML = html;
+        }
+    </script>
+</body>
+</html>
