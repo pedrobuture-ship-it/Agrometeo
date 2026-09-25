@@ -9,7 +9,7 @@ db.version(1).stores({
 
 export const MAX_SAVED_LOCATIONS = 5;
 
-export async function saveLocation({ name, lat, lng, notes = '' }) {
+export async function saveLocation({ name, lat, lng, notes = '', soilType = 'argiloso', rootDepth = 40 }) {
   const count = await db.locations.count();
   if (count >= MAX_SAVED_LOCATIONS) {
     throw new Error(`Limite máximo de ${MAX_SAVED_LOCATIONS} locais salvos atingido. Remova um local para salvar outro.`);
@@ -20,6 +20,8 @@ export async function saveLocation({ name, lat, lng, notes = '' }) {
     lat,
     lng,
     notes,
+    soilType,
+    rootDepth,
     createdAt: new Date().toISOString()
   });
 }

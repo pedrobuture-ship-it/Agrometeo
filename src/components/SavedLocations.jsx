@@ -2,6 +2,7 @@ import React from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Bookmark, Trash2, ArrowUpRight, Calendar, MapPin, FileText } from 'lucide-react';
 import { db, deleteLocation, MAX_SAVED_LOCATIONS } from '../db';
+import { SOIL_TYPES } from '../services/soilPhysics';
 
 export default function SavedLocations({ onSelectLocation }) {
   const locations = useLiveQuery(() => db.locations.orderBy('createdAt').reverse().toArray());
@@ -46,6 +47,19 @@ export default function SavedLocations({ onSelectLocation }) {
                 <h4>{loc.name}</h4>
                 <p>
                   <MapPin size={13} /> {loc.lat.toFixed(4)}, {loc.lng.toFixed(4)}
+                  {loc.soilType && (
+                    <span style={{ 
+                      marginLeft: 8, 
+                      padding: '2px 7px', 
+                      borderRadius: 6, 
+                      background: 'rgba(0, 122, 255, 0.1)', 
+                      color: 'var(--accent-blue)', 
+                      fontSize: '0.72rem',
+                      fontWeight: 600
+                    }}>
+                      Solo {SOIL_TYPES[loc.soilType]?.name || loc.soilType} {loc.rootDepth ? `(${loc.rootDepth}cm)` : ''}
+                    </span>
+                  )}
                 </p>
               </div>
 

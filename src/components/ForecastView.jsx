@@ -17,6 +17,7 @@ import { generateAgroMeteoPDF } from '../services/pdfReport';
 import AgronomicAlerts from './AgronomicAlerts';
 import SprayingWindow from './SprayingWindow';
 import AgronomicCharts from './AgronomicCharts';
+import SoilWaterCard from './SoilWaterCard';
 
 export default function ForecastView({
   theme,
@@ -24,16 +25,32 @@ export default function ForecastView({
   lat,
   lng,
   locationName,
+  initialSoilType = 'argiloso',
+  initialRootDepth = 40,
   isLoading,
   error,
   onOpenSaveModal,
 }) {
+  const [soilType, setSoilType] = useState(initialSoilType || 'argiloso');
+  const [rootDepth, setRootDepth] = useState(initialRootDepth || 40);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
+  React.useEffect(() => {
+    if (initialSoilType) setSoilType(initialSoilType);
+    if (initialRootDepth) setRootDepth(initialRootDepth);
+  }, [initialSoilType, initialRootDepth]);
 
   async function handleExportPDF() {
     try {
       setIsGeneratingPDF(true);
-      await generateAgroMeteoPDF({ forecastData, lat, lng, locationName });
+      await generateAgroMeteoPDF({ 
+        forecastData, 
+        lat, 
+        lng, 
+        locationName,
+        soilType,
+        rootDepth,
+      });
     } catch (err) {
       alert(`Falha ao gerar o laudo PDF: ${err.message}`);
     } finally {
@@ -114,10 +131,28 @@ export default function ForecastView({
       </div>
 
       {/* Alertas Agronômicos em Destaque */}
-      <AgronomicAlerts forecastData={forecastData} />
+      <AgronomicAlerts 
+        forecastData={forecastData} 
+        soilType={soilType} 
+        rootDepth={rootDepth} 
+      />
+
+      {/* Inteligência Hidrofísica de Solos e Balanço Hídrico */}
+      <SoilWaterCard
+        soilType={soilType}
+        setSoilType={setSoilType}
+        rootDepth={rootDepth}
+        setRootDepth={setRootDepth}
+        forecastData={forecastData}
+      />
 
       {/* Gráficos Visuais e Interativos */}
-      <AgronomicCharts forecastData={forecastData} theme={theme} />
+      <AgronomicCharts 
+        forecastData={forecastData} 
+        theme={theme} 
+        soilType={soilType} 
+        rootDepth={rootDepth} 
+      />
 
       {/* Cards dos Dias de Previsão */}
       {d.time.map((timeStr, i) => {

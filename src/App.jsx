@@ -38,8 +38,8 @@ export default function App() {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   }
 
-  async function handleSelectPoint(lat, lng, customName = '', zoom = null) {
-    setCurrentPoint({ lat, lng, name: customName, zoom });
+  async function handleSelectPoint(lat, lng, customName = '', zoom = null, soilType = null, rootDepth = null) {
+    setCurrentPoint({ lat, lng, name: customName, zoom, soilType, rootDepth });
     setIsLoading(true);
     setError(null);
     setActiveTab('analysis');
@@ -64,7 +64,7 @@ export default function App() {
   }
 
   function handleSelectSavedLocation(loc) {
-    handleSelectPoint(loc.lat, loc.lng, loc.name, 12);
+    handleSelectPoint(loc.lat, loc.lng, loc.name, 12, loc.soilType, loc.rootDepth);
   }
 
   function handleLoadHistorySnapshot(historyItem) {
@@ -114,6 +114,8 @@ export default function App() {
         onClose={() => setIsSaveModalOpen(false)}
         lat={currentPoint?.lat}
         lng={currentPoint?.lng}
+        initialSoilType={currentPoint?.soilType || 'argiloso'}
+        initialRootDepth={currentPoint?.rootDepth || 40}
         onSaved={() => {
           setActiveTab('saved');
         }}

@@ -2,8 +2,8 @@ import React from 'react';
 import { AlertTriangle, Snowflake, CloudLightning, Droplets, Info } from 'lucide-react';
 import { checkAgronomicAlerts } from '../services/openMeteo';
 
-export default function AgronomicAlerts({ forecastData }) {
-  const alerts = checkAgronomicAlerts(forecastData);
+export default function AgronomicAlerts({ forecastData, soilType = 'argiloso', rootDepth = 40 }) {
+  const alerts = checkAgronomicAlerts(forecastData, soilType, rootDepth);
 
   if (!alerts || alerts.length === 0) return null;
 

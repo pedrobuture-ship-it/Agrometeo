@@ -26,8 +26,9 @@ import {
   Droplets,
   Layers,
 } from 'lucide-react';
+import { getSoilProfile } from '../services/soilPhysics';
 
-export default function AgronomicCharts({ forecastData, theme }) {
+export default function AgronomicCharts({ forecastData, theme, soilType = 'argiloso', rootDepth = 40 }) {
   const [activeChart, setActiveChart] = useState('rain'); // 'rain' | 'temp' | 'soil'
   const [rainViewMode, setRainViewMode] = useState('daily'); // 'daily' | 'hourly'
   const [soilViewMode, setSoilViewMode] = useState('daily'); // 'daily' | 'hourly'
@@ -169,6 +170,11 @@ export default function AgronomicCharts({ forecastData, theme }) {
   const avgSoilDeep = (
     soilDailyData.reduce((acc, curr) => acc + curr.moisture7_28, 0) / soilDailyData.length
   ).toFixed(1);
+
+  const soilProfile = getSoilProfile(soilType);
+  const pmpPercent = Number((soilProfile.wiltingPoint * 100).toFixed(0));
+  const ccPercent = Number((soilProfile.fieldCapacity * 100).toFixed(0));
+  const avgCurrentMoisture = (Number(avgSoilTop) + Number(avgSoilDeep)) / 2;
 
   // Custom Tooltip estilizado Glassmorphism
   const CustomTooltip = ({ active, payload, label }) => {
@@ -486,24 +492,28 @@ export default function AgronomicCharts({ forecastData, theme }) {
 
             <div className="chart-metric-item">
               <span className="metric-label">
-                <AlertCircle size={13} /> Status Hídrico
+                <AlertCircle size={13} /> Status Hídrico ({soilProfile.name})
               </span>
               <strong
                 className="metric-value"
                 style={{
                   color:
-                    avgSoilTop < 20 || avgSoilDeep < 20
+                    avgCurrentMoisture < pmpPercent
                       ? colors.warning
-                      : avgSoilTop > 80
+                      : avgCurrentMoisture < pmpPercent + 0.4 * (ccPercent - pmpPercent)
+                      ? colors.warning
+                      : avgCurrentMoisture > ccPercent * 1.05
                       ? colors.neutral
                       : colors.soilTop,
                 }}
               >
-                {avgSoilTop < 20
+                {avgCurrentMoisture < pmpPercent
+                  ? 'Abaixo PMP'
+                  : avgCurrentMoisture < pmpPercent + 0.4 * (ccPercent - pmpPercent)
                   ? 'Déficit'
-                  : avgSoilTop > 80
+                  : avgCurrentMoisture > ccPercent * 1.05
                   ? 'Saturação'
-                  : 'Favorável'}
+                  : 'Conforto Pleno'}
               </strong>
             </div>
           </div>
@@ -559,27 +569,27 @@ export default function AgronomicCharts({ forecastData, theme }) {
                   iconType="circle"
                 />
 
-                {/* Linhas de Referência Agronômica */}
+                {/* Linhas de Referência Hidrofísica do Solo */}
                 <ReferenceLine
-                  y={18}
+                  y={pmpPercent}
                   stroke="#FF3B30"
                   strokeDasharray="4 4"
-                  strokeOpacity={0.7}
+                  strokeOpacity={0.8}
                   label={{
-                    value: 'Déficit (18%)',
+                    value: `PMP (${pmpPercent}%)`,
                     fill: '#FF3B30',
                     fontSize: 9,
                     position: 'insideBottomRight',
                   }}
                 />
                 <ReferenceLine
-                  y={85}
-                  stroke="#007AFF"
+                  y={ccPercent}
+                  stroke="#34C759"
                   strokeDasharray="4 4"
-                  strokeOpacity={0.6}
+                  strokeOpacity={0.8}
                   label={{
-                    value: 'Saturação (85%)',
-                    fill: '#007AFF',
+                    value: `Cap. Campo (${ccPercent}%)`,
+                    fill: '#34C759',
                     fontSize: 9,
                     position: 'insideTopRight',
                   }}
@@ -610,7 +620,7 @@ export default function AgronomicCharts({ forecastData, theme }) {
           </div>
 
           <div className="chart-footnote">
-            Linhas pontilhadas indicam o limiar de estresse por déficit (&lt;18%) e excesso de água por encharcamento (&gt;85%).
+            Linhas de referência para solo <strong>{soilProfile.name}</strong>: Ponto de Murcha Permanente ({pmpPercent}%) e Capacidade de Campo ({ccPercent}%).
           </div>
         </div>
       )}

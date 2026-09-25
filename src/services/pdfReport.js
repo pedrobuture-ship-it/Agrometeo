@@ -1,6 +1,7 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { calculateDeltaT, evaluateSprayingCondition, checkAgronomicAlerts } from './openMeteo.js';
+import { calculateSoilWaterBalance } from './soilPhysics.js';
 
 /**
  * Converte a logo da UEPG para Data URL base64
@@ -29,7 +30,14 @@ async function getLogoBase64() {
 /**
  * Gera e faz o download de um Laudo Técnico / Boletim Agrometeorológico em PDF
  */
-export async function generateAgroMeteoPDF({ forecastData, lat, lng, locationName }) {
+export async function generateAgroMeteoPDF({ 
+  forecastData, 
+  lat, 
+  lng, 
+  locationName,
+  soilType = 'argiloso',
+  rootDepth = 40 
+}) {
   if (!forecastData || !forecastData.daily || !forecastData.hourly) {
     throw new Error('Dados meteorológicos incompletos para geração do PDF.');
   }
@@ -91,11 +99,22 @@ export async function generateAgroMeteoPDF({ forecastData, lat, lng, locationNam
   doc.line(margin, currentY, pageWidth - margin, currentY);
   currentY += 5;
 
-  // 2. QUADRO DE IDENTIFICAÇÃO DO TALHÃO / LOCALIZAÇÃO
+  // 2. QUADRO DE IDENTIFICAÇÃO DO TALHÃO & BALANÇO HÍDRICO DE SOLO
+  const s0_7 = h.soil_moisture_0_to_7cm ? (h.soil_moisture_0_to_7cm[12] ?? 0.3) : 0.3;
+  const s7_28 = h.soil_moisture_7_to_28cm ? (h.soil_moisture_7_to_28cm[12] ?? 0.3) : 0.3;
+  const soilBalance = calculateSoilWaterBalance({
+    soilTypeKey: soilType,
+    rootDepth: Number(rootDepth),
+    soilMoisture0_7: s0_7,
+    soilMoisture7_28: s7_28,
+    et0Daily: d.et0_fao_evapotranspiration || [],
+    rainForecast: d.precipitation_sum || [],
+  });
+
   doc.setFillColor(248, 250, 252);
   doc.setDrawColor(226, 232, 240);
   doc.setLineWidth(0.3);
-  doc.roundedRect(margin, currentY, pageWidth - margin * 2, 24, 2, 2, 'FD');
+  doc.roundedRect(margin, currentY, pageWidth - margin * 2, 30, 2, 2, 'FD');
 
   const locTitle = locationName ? `Talhão / Local: ${locationName}` : 'Ponto de Monitoramento Georreferenciado';
   doc.setFont('helvetica', 'bold');
@@ -104,31 +123,39 @@ export async function generateAgroMeteoPDF({ forecastData, lat, lng, locationNam
   doc.text(locTitle, margin + 4, currentY + 6);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
+  doc.setFontSize(8);
   doc.setTextColor(71, 85, 105);
 
   const col1X = margin + 4;
   const col2X = margin + 65;
   const col3X = margin + 125;
 
-  doc.text(`Latitude: ${lat != null ? lat.toFixed(4) : '-'}°`, col1X, currentY + 12);
-  doc.text(`Longitude: ${lng != null ? lng.toFixed(4) : '-'}°`, col1X, currentY + 18);
-
   const elevText = forecastData.elevation != null ? `${forecastData.elevation} metros` : 'N/D';
-  doc.text(`Altitude: ${elevText}`, col2X, currentY + 12);
-  doc.text('Horizonte: Previsão de 7 Dias', col2X, currentY + 18);
-
   const totalPrecip = d.precipitation_sum ? d.precipitation_sum.reduce((a, b) => a + (b || 0), 0) : 0;
   const maxTempPeriod = d.temperature_2m_max ? Math.max(...d.temperature_2m_max) : '-';
   const minTempPeriod = d.temperature_2m_min ? Math.min(...d.temperature_2m_min) : '-';
 
-  doc.text(`Chuva Acumulada: ${totalPrecip.toFixed(1)} mm`, col3X, currentY + 12);
+  // Linha 1 de dados
+  doc.text(`Latitude: ${lat != null ? lat.toFixed(4) : '-'}°`, col1X, currentY + 12);
+  doc.text(`Altitude: ${elevText}`, col2X, currentY + 12);
+  doc.text(`Chuva Acumulada (7d): ${totalPrecip.toFixed(1)} mm`, col3X, currentY + 12);
+
+  // Linha 2 de dados
+  doc.text(`Longitude: ${lng != null ? lng.toFixed(4) : '-'}°`, col1X, currentY + 18);
+  doc.text('Horizonte: Previsão de 7 Dias', col2X, currentY + 18);
   doc.text(`Amplitude Térmica: ${minTempPeriod}°C a ${maxTempPeriod}°C`, col3X, currentY + 18);
 
-  currentY += 28;
+  // Linha 3 de dados (Parâmetros de Solo e Água Disponível)
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 51, 102);
+  doc.text(`Solo: ${soilBalance.profile.name} (${rootDepth} cm)`, col1X, currentY + 24);
+  doc.text(`Água Disponível (AD): ${soilBalance.adPercent}%`, col2X, currentY + 24);
+  doc.text(`Lâmina Reposição: ${soilBalance.irrigationRequiredMm > 0 ? `${soilBalance.irrigationRequiredMm} mm` : 'Satisfeita'}`, col3X, currentY + 24);
+
+  currentY += 34;
 
   // 3. ALERTAS E DIAGNÓSTICO AGRONÔMICO
-  const alerts = checkAgronomicAlerts(forecastData);
+  const alerts = checkAgronomicAlerts(forecastData, soilType, rootDepth);
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9.5);
@@ -283,7 +310,8 @@ export async function generateAgroMeteoPDF({ forecastData, lat, lng, locationNam
   const rawNotes = [
     '• Aplicação de Defensivos: Operar preferencialmente com Delta T entre 2°C e 8°C, vento entre 3 e 10 km/h e UR > 50%.',
     '• Risco de Deriva e Evaporação: Delta T > 8°C causa rápida evaporação de gotas; Delta T < 2°C favorece orvalho e deriva estática.',
-    '• Manejo Hídrico: Solo < 18% indica estresse hídrico crítico; acima de 85% indica saturação/encharcamento radicular.',
+    `• Manejo Hídrico (Solo ${soilBalance.profile.name} - ${rootDepth} cm): Água Disponível em ${soilBalance.adPercent}%. Lâmina necessária para reposição: ${soilBalance.irrigationRequiredMm > 0 ? `${soilBalance.irrigationRequiredMm} mm` : '0 mm (Capacidade de campo atendida)'}. Autonomia estimada: ${soilBalance.adPercent <= 40 ? 'Limiar crítico atingido' : `${soilBalance.autonomyDays} dias`}.`,
+    `• Trafegabilidade de Máquinas no Talhão: ${soilBalance.trafficability.title} - ${soilBalance.trafficability.description}`,
   ];
 
   const noteLines = [];

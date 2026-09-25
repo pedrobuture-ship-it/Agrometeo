@@ -2,11 +2,30 @@ import React, { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Bookmark, X, MapPin, AlertCircle } from 'lucide-react';
 import { db, saveLocation, MAX_SAVED_LOCATIONS } from '../db';
+import { SOIL_TYPES, ROOT_DEPTH_OPTIONS } from '../services/soilPhysics';
 
-export default function SaveLocationModal({ isOpen, onClose, lat, lng, onSaved }) {
+export default function SaveLocationModal({ 
+  isOpen, 
+  onClose, 
+  lat, 
+  lng, 
+  onSaved,
+  initialSoilType = 'argiloso',
+  initialRootDepth = 40
+}) {
   const [name, setName] = useState('');
   const [notes, setNotes] = useState('');
+  const [soilType, setSoilType] = useState(initialSoilType);
+  const [rootDepth, setRootDepth] = useState(initialRootDepth);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Sincroniza com as props quando o modal abre
+  React.useEffect(() => {
+    if (isOpen) {
+      setSoilType(initialSoilType || 'argiloso');
+      setRootDepth(initialRootDepth || 40);
+    }
+  }, [isOpen, initialSoilType, initialRootDepth]);
 
   const savedCount = useLiveQuery(() => db.locations.count()) ?? 0;
   const isLimitReached = savedCount >= MAX_SAVED_LOCATIONS;
@@ -24,6 +43,8 @@ export default function SaveLocationModal({ isOpen, onClose, lat, lng, onSaved }
         lat,
         lng,
         notes: notes.trim(),
+        soilType,
+        rootDepth: Number(rootDepth),
       });
       setName('');
       setNotes('');
@@ -90,12 +111,45 @@ export default function SaveLocationModal({ isOpen, onClose, lat, lng, onSaved }
           </div>
 
           <div className="form-group">
+            <label>Tipo de Solo (Textura)</label>
+            <select
+              className="form-input"
+              value={soilType}
+              onChange={(e) => setSoilType(e.target.value)}
+              style={{ cursor: 'pointer' }}
+            >
+              {Object.values(SOIL_TYPES).map((st) => (
+                <option key={st.id} value={st.id}>
+                  {st.name} ({st.subname}) - {st.description}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label>Profundidade Radicular Efetiva</label>
+            <select
+              className="form-input"
+              value={rootDepth}
+              onChange={(e) => setRootDepth(Number(e.target.value))}
+              style={{ cursor: 'pointer' }}
+            >
+              {ROOT_DEPTH_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
             <label>Anotações</label>
             <textarea
               className="form-textarea"
-              rows={3}
+              rows={2}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
+              placeholder="Ex: Talhão 4, plantio de soja em 15/10..."
             />
           </div>
 

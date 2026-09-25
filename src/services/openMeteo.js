@@ -1,3 +1,5 @@
+import { calculateSoilWaterBalance } from './soilPhysics';
+
 export function getWindDirection(degree) {
   const dirs = ['N', 'NE', 'L', 'SE', 'S', 'SO', 'O', 'NO'];
   return dirs[Math.round(((degree %= 360) < 0 ? degree + 360 : degree) / 45) % 8];
@@ -138,7 +140,7 @@ export function evaluateSprayingCondition({ temp, rh, wind, precip }) {
 }
 
 // Analisador de Alertas Agronômicos em Tempo Real
-export function checkAgronomicAlerts(data) {
+export function checkAgronomicAlerts(data, soilType = 'argiloso', rootDepth = 40) {
   if (!data || !data.daily || !data.hourly) return [];
   const alerts = [];
   const d = data.daily;
@@ -194,27 +196,51 @@ export function checkAgronomicAlerts(data) {
     });
   }
 
-  // 3. Alerta de Estresse Hídrico do Solo
+  // 3. Alerta de Estresse Hídrico do Solo baseado no Tipo de Solo
   if (h.soil_moisture_0_to_7cm && h.soil_moisture_7_to_28cm) {
-    const m1 = h.soil_moisture_0_to_7cm[12] ?? 0.3;
-    const m2 = h.soil_moisture_7_to_28cm[12] ?? 0.3;
-    const avgMoisture = ((m1 + m2) / 2) * 100;
+    const s0_7 = h.soil_moisture_0_to_7cm[12] ?? 0.3;
+    const s7_28 = h.soil_moisture_7_to_28cm[12] ?? 0.3;
 
-    if (avgMoisture < 18) {
+    const balance = calculateSoilWaterBalance({
+      soilTypeKey: soilType,
+      rootDepth: Number(rootDepth),
+      soilMoisture0_7: s0_7,
+      soilMoisture7_28: s7_28,
+      et0Daily: d.et0_fao_evapotranspiration || [],
+      rainForecast: d.precipitation_sum || [],
+    });
+
+    if (balance.status === 'wilting') {
       alerts.push({
-        id: 'soil-drought',
+        id: 'soil-wilting',
+        type: 'danger',
+        category: 'Solo',
+        title: `Solo ${balance.profile.name}: Abaixo do Ponto de Murcha`,
+        description: `Umidade atual (${balance.currentMoisturePercent.toFixed(1)}%) abaixo do PMP (${balance.wiltingPointPercent}%). As raízes não conseguem extrair água. Lâmina necessária para reposição: ${balance.irrigationRequiredMm} mm.`,
+      });
+    } else if (balance.status === 'deficit') {
+      alerts.push({
+        id: 'soil-deficit',
+        type: 'danger',
+        category: 'Solo',
+        title: `Solo ${balance.profile.name}: Déficit Hídrico Crítico (AD ${balance.adPercent}%)`,
+        description: `Água disponível abaixo de 40%. Estresse hídrico severo com fechamento estomático. Lâmina necessária: ${balance.irrigationRequiredMm} mm.`,
+      });
+    } else if (balance.status === 'attention') {
+      alerts.push({
+        id: 'soil-attention',
         type: 'warning',
         category: 'Solo',
-        title: 'Déficit Hídrico Crítico no Solo',
-        description: `Umidade média nas camadas radiculares de apenas ${avgMoisture.toFixed(1)}%. Condição de estresse para semeadura e desenvolvimento vegetativo.`,
+        title: `Solo ${balance.profile.name}: Início de Esgotamento Hídrico (AD ${balance.adPercent}%)`,
+        description: `Água disponível entre 40% e 60%. Autonomia estimada em cerca de ${balance.autonomyDays} dias sob a evapotranspiração prevista.`,
       });
-    } else if (avgMoisture > 85) {
+    } else if (balance.status === 'saturated') {
       alerts.push({
         id: 'soil-saturated',
         type: 'info',
         category: 'Solo',
-        title: 'Solo Saturado / Risco de Encharcamento',
-        description: `Umidade do solo em ${avgMoisture.toFixed(1)}%. Evite tráfego pesado de maquinário para não compactar o solo.`,
+        title: `Solo ${balance.profile.name}: Saturado / Risco de Encharcamento`,
+        description: `Umidade (${balance.currentMoisturePercent.toFixed(1)}%) acima da capacidade de campo (${balance.fieldCapacityPercent}%). Tráfego desaconselhado devido ao risco de compactação severa e atolamento.`,
       });
     }
   }

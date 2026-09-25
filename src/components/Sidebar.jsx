@@ -62,6 +62,8 @@ export default function Sidebar({
             lat={currentPoint?.lat}
             lng={currentPoint?.lng}
             locationName={currentPoint?.name}
+            initialSoilType={currentPoint?.soilType}
+            initialRootDepth={currentPoint?.rootDepth}
             isLoading={isLoading}
             error={error}
             onOpenSaveModal={onOpenSaveModal}
