@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   Info, 
   X, 
@@ -30,7 +31,9 @@ export default function DataSourcesModal({ onClose }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
-  return (
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div 
         className="modal-content data-sources-modal-content" 
@@ -530,6 +533,7 @@ export default function DataSourcesModal({ onClose }) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

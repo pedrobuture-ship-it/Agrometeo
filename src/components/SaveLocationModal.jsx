@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Bookmark, X, MapPin, AlertCircle } from 'lucide-react';
 import { db, saveLocation, MAX_SAVED_LOCATIONS } from '../db';
@@ -30,7 +31,7 @@ export default function SaveLocationModal({
   const savedCount = useLiveQuery(() => db.locations.count()) ?? 0;
   const isLimitReached = savedCount >= MAX_SAVED_LOCATIONS;
 
-  if (!isOpen) return null;
+  if (!isOpen || typeof document === 'undefined') return null;
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -57,7 +58,7 @@ export default function SaveLocationModal({
     }
   }
 
-  return (
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
@@ -163,6 +164,7 @@ export default function SaveLocationModal({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

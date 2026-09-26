@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Download, Smartphone, Share, X, CheckCircle2 } from 'lucide-react';
 
 export default function InstallPWAButton() {
@@ -88,7 +89,7 @@ export default function InstallPWAButton() {
       </button>
 
       {/* Modal de Instruções de Instalação (para iOS e outros navegadores) */}
-      {showInstructions && (
+      {showInstructions && typeof document !== 'undefined' && createPortal(
         <div className="modal-overlay install-modal-overlay" onClick={() => setShowInstructions(false)}>
           <div 
             className="modal-content install-modal-content" 
@@ -184,7 +185,8 @@ export default function InstallPWAButton() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
