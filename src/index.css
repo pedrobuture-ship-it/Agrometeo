@@ -806,6 +806,83 @@ body.dark .uepg-logo-wrapper {
   color: var(--danger-red);
 }
 
+.btn-icon.pin-btn {
+  color: var(--text-light);
+  transition: all 0.2s ease;
+}
+
+.btn-icon.pin-btn:hover {
+  background: rgba(255, 149, 0, 0.15);
+  color: var(--warning-orange);
+}
+
+.btn-icon.pin-btn.active {
+  color: var(--warning-orange);
+  background: rgba(255, 149, 0, 0.14);
+}
+
+.pin-active-icon {
+  transform: rotate(35deg);
+  transition: transform 0.2s ease;
+}
+
+/* Histórico - Header e Pinned Cards */
+.history-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.history-header-subtitle {
+  margin-top: 4px;
+}
+
+.history-hint-text {
+  font-size: 0.74rem;
+  color: var(--text-light);
+}
+
+.pinned-counter-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--warning-orange);
+  background: rgba(255, 149, 0, 0.12);
+  border: 1px solid rgba(255, 149, 0, 0.3);
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+.item-card.is-pinned {
+  border-color: rgba(255, 149, 0, 0.45);
+  background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255, 149, 0, 0.04) 100%);
+  box-shadow: 0 4px 14px rgba(255, 149, 0, 0.08);
+  position: relative;
+}
+
+body.dark .item-card.is-pinned {
+  border-color: rgba(255, 159, 10, 0.4);
+  background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255, 159, 10, 0.06) 100%);
+}
+
+.pinned-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--warning-orange);
+  background: rgba(255, 149, 0, 0.12);
+  padding: 2px 6px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
 .item-card-footer {
   display: flex;
   justify-content: space-between;

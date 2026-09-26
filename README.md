@@ -50,7 +50,7 @@ O **AgroMeteo** é uma Progressive Web Application (PWA) desenvolvida para atend
 
 ### 6. Armazenamento Local com Dexie.js (IndexedDB)
 * **Locais Salvos (Até 5 talhões)**: Salve fazendas e talhões personalizados com anotações de manejo, coordenadas, tipo de solo e profundidade radicular.
-* **Histórico Automático (Até 25 consultas)**: Snapshots meteorológicos salvos automaticamente para consulta offline no campo.
+* **Histórico Automático & Fixação de Consultas**: Armazena até 25 snapshots meteorológicos para consulta offline no campo, permitindo fixar (pinar) até 5 consultas prioritárias no topo para que fiquem protegidas e não sejam removidas pelas novas buscas.
 
 ### 7. Laudo Técnico em PDF & Exportação CSV
 * **Laudo Oficial UEPG em PDF**: Gera relatórios técnicos formatados em A4 com a marca da universidade, resumo do talhão, balanço hídrico de solo, alertas, tabela de 7 dias, orientações de tráfego e recomendações fitossanitárias prontos para envio por WhatsApp ou impressão.
