@@ -60,6 +60,11 @@ O **AgroMeteo** é uma Progressive Web Application (PWA) desenvolvida para atend
 * **Instalável na Tela Inicial**: Ícones nativos em alta resolução (`192x192`, `512x512` e `apple-touch-icon`).
 * **Cache Offline (`sw.js`)**: Permite carregar a aplicação mesmo sem conexão de dados móveis no campo.
 
+### 9. Transparência de Dados e Metodologia Científica
+* **Painel Interativo no Cabeçalho**: Botão com ícone de informação que detalha a origem de cada variável e os modelos de cálculo adotados.
+* **Origem dos Dados Meteorológicos**: Especificação de provedor (Open-Meteo API), modelos numéricos (ECMWF, ICON, GFS) e parâmetros atmosféricos brutos.
+* **Cálculos Agronômicos Locais**: Exposição aberta das equações psicrométricas (Delta T via Stull), física de solos (AD%, CAD, Lâmina de Irrigação), autonomia hídrica e trafegabilidade.
+
 ---
 
 ## Fundamentos e Cálculos Hidrofísicos de Solo
