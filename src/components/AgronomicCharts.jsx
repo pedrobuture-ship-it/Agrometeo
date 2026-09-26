@@ -25,10 +25,12 @@ import {
   AlertCircle,
   Droplets,
   Layers,
+  ChevronDown,
 } from 'lucide-react';
 import { getSoilProfile } from '../services/soilPhysics';
 
 export default function AgronomicCharts({ forecastData, theme, soilType = 'argiloso', rootDepth = 40 }) {
+  const [isExpanded, setIsExpanded] = useState(false); // Recolhido por padrão
   const [activeChart, setActiveChart] = useState('rain'); // 'rain' | 'temp' | 'soil'
   const [rainViewMode, setRainViewMode] = useState('daily'); // 'daily' | 'hourly'
   const [soilViewMode, setSoilViewMode] = useState('daily'); // 'daily' | 'hourly'
@@ -200,49 +202,71 @@ export default function AgronomicCharts({ forecastData, theme, soilType = 'argil
   };
 
   return (
-    <div className="agronomic-charts-card">
-      {/* Cabeçalho da Seção de Gráficos */}
-      <div className="charts-card-header">
+    <div className={`agronomic-charts-card ${isExpanded ? 'is-expanded' : 'is-collapsed'}`}>
+      {/* Cabeçalho da Seção de Gráficos Clicável com Flechinha */}
+      <div 
+        className={`charts-card-header ${isExpanded ? 'expanded' : 'collapsed'}`}
+        onClick={() => setIsExpanded(!isExpanded)}
+        style={{ cursor: 'pointer', userSelect: 'none' }}
+        title={isExpanded ? 'Clique para recolher gráficos' : 'Clique para expandir gráficos'}
+      >
         <div className="charts-title-group">
           <span className="charts-icon-badge">
             <BarChart2 size={16} />
           </span>
           <div>
             <h3>Análise Gráfica & Tendências</h3>
-            <span className="charts-subtitle">Comportamento hídrico, térmico e edáfico</span>
+            <span className="charts-subtitle">
+              {isExpanded 
+                ? 'Comportamento hídrico, térmico e edáfico' 
+                : 'Chuva, temperatura e umidade do solo (Clique para expandir)'}
+            </span>
           </div>
         </div>
 
-        {/* Seletor de Tipo de Gráfico */}
-        <div className="chart-tabs-nav">
-          <button
-            className={`chart-tab-pill ${activeChart === 'rain' ? 'active' : ''}`}
-            onClick={() => setActiveChart('rain')}
-            title="Precipitação e Probabilidade"
-          >
-            <CloudRain size={14} />
-            <span>Chuva</span>
-          </button>
-
-          <button
-            className={`chart-tab-pill ${activeChart === 'temp' ? 'active' : ''}`}
-            onClick={() => setActiveChart('temp')}
-            title="Curva de Temperatura"
-          >
-            <Thermometer size={14} />
-            <span>Temperatura</span>
-          </button>
-
-          <button
-            className={`chart-tab-pill ${activeChart === 'soil' ? 'active' : ''}`}
-            onClick={() => setActiveChart('soil')}
-            title="Umidade do Solo 0-28cm"
-          >
-            <Sprout size={14} />
-            <span>Solo</span>
-          </button>
-        </div>
+        <button 
+          type="button" 
+          className="btn-card-toggle"
+          aria-label={isExpanded ? 'Recolher seção de gráficos' : 'Expandir seção de gráficos'}
+        >
+          <ChevronDown 
+            size={18} 
+            className={`toggle-icon ${isExpanded ? 'open' : ''}`}
+          />
+        </button>
       </div>
+
+      {isExpanded && (
+        <div className="charts-expanded-content">
+          {/* Seletor de Tipo de Gráfico */}
+          <div className="chart-tabs-nav" style={{ marginBottom: 14 }}>
+            <button
+              className={`chart-tab-pill ${activeChart === 'rain' ? 'active' : ''}`}
+              onClick={() => setActiveChart('rain')}
+              title="Precipitação e Probabilidade"
+            >
+              <CloudRain size={14} />
+              <span>Chuva</span>
+            </button>
+
+            <button
+              className={`chart-tab-pill ${activeChart === 'temp' ? 'active' : ''}`}
+              onClick={() => setActiveChart('temp')}
+              title="Curva de Temperatura"
+            >
+              <Thermometer size={14} />
+              <span>Temperatura</span>
+            </button>
+
+            <button
+              className={`chart-tab-pill ${activeChart === 'soil' ? 'active' : ''}`}
+              onClick={() => setActiveChart('soil')}
+              title="Umidade do Solo 0-28cm"
+            >
+              <Sprout size={14} />
+              <span>Solo</span>
+            </button>
+          </div>
 
       {/* --- GRÁFICO 1: PRECIPITAÇÃO E PROBABILIDADE --- */}
       {activeChart === 'rain' && (
@@ -622,6 +646,8 @@ export default function AgronomicCharts({ forecastData, theme, soilType = 'argil
           <div className="chart-footnote">
             Linhas de referência para solo <strong>{soilProfile.name}</strong>: Ponto de Murcha Permanente ({pmpPercent}%) e Capacidade de Campo ({ccPercent}%).
           </div>
+        </div>
+      )}
         </div>
       )}
     </div>

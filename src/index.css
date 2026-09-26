@@ -1353,11 +1353,22 @@ body.dark .spraying-detail-card.inadequate .status-name { color: #FF453A; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 12px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.charts-card-header.expanded {
+  margin-bottom: 14px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--border-color);
+}
+
+.charts-card-header.collapsed {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .charts-title-group {
@@ -1680,11 +1691,64 @@ body.dark .chart-custom-tooltip {
   transition: all 0.25s ease;
 }
 
+.soil-water-card.is-collapsed,
+.agronomic-charts-card.is-collapsed {
+  padding: 14px 18px;
+}
+
 .soil-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 14px;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.soil-card-header.expanded {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.soil-card-header.collapsed {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.btn-card-toggle {
+  background: var(--item-bg);
+  border: 1px solid var(--border-color);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.soil-card-header:hover .btn-card-toggle,
+.charts-card-header:hover .btn-card-toggle,
+.btn-card-toggle:hover {
+  background: var(--item-hover);
+  color: var(--text-main);
+  border-color: rgba(0, 122, 255, 0.4);
+}
+
+.toggle-icon {
+  transition: transform 0.25s ease;
+  transform: rotate(0deg);
+}
+
+.toggle-icon.open {
+  transform: rotate(180deg);
 }
 
 .soil-card-title-group {

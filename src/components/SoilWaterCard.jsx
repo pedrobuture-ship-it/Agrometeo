@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Sprout, 
   Layers, 
@@ -6,9 +6,7 @@ import {
   Clock, 
   Truck, 
   Info, 
-  ChevronRight,
-  ShieldCheck,
-  AlertTriangle
+  ChevronDown
 } from 'lucide-react';
 import { 
   SOIL_TYPES, 
@@ -23,6 +21,8 @@ export default function SoilWaterCard({
   setRootDepth,
   forecastData,
 }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   if (!forecastData || !forecastData.hourly || !forecastData.daily) return null;
 
   const h = forecastData.hourly;
@@ -44,9 +44,14 @@ export default function SoilWaterCard({
   const clampedAd = Math.max(0, Math.min(100, balance.adPercent));
 
   return (
-    <div className="soil-water-card">
-      {/* Cabeçalho do Card */}
-      <div className="soil-card-header">
+    <div className={`soil-water-card ${isExpanded ? 'is-expanded' : 'is-collapsed'}`}>
+      {/* Cabeçalho do Card com Flechinha */}
+      <div 
+        className={`soil-card-header ${isExpanded ? 'expanded' : 'collapsed'}`}
+        onClick={() => setIsExpanded(!isExpanded)}
+        style={{ cursor: 'pointer', userSelect: 'none' }}
+        title={isExpanded ? 'Clique para recolher' : 'Clique para expandir'}
+      >
         <div className="soil-card-title-group">
           <div className="soil-icon-badge">
             <Sprout size={18} />
@@ -54,11 +59,28 @@ export default function SoilWaterCard({
           <div>
             <h3>Inteligência de Solo & Balanço Hídrico</h3>
             <span className="soil-card-subtitle">
-              Capacidade de Campo e Água Disponível Real (Embrapa / FAO)
+              {isExpanded 
+                ? 'Capacidade de Campo e Água Disponível Real (Embrapa / FAO)'
+                : `${balance.profile.name} • AD: ${balance.adPercent}% (${balance.statusLabel})`
+              }
             </span>
           </div>
         </div>
+
+        <button 
+          type="button" 
+          className="btn-card-toggle"
+          aria-label={isExpanded ? 'Recolher seção de solo' : 'Expandir seção de solo'}
+        >
+          <ChevronDown 
+            size={18} 
+            className={`toggle-icon ${isExpanded ? 'open' : ''}`}
+          />
+        </button>
       </div>
+
+      {isExpanded && (
+        <div className="soil-card-body">
 
       {/* Seletores Interativos: Tipo de Solo & Profundidade Radicular */}
       <div className="soil-selectors-grid">
@@ -209,6 +231,8 @@ export default function SoilWaterCard({
           Capacidade de Água Disponível (CAD): {balance.totalCadMm} mm no perfil radicular.
         </span>
       </div>
+        </div>
+      )}
     </div>
   );
 }
