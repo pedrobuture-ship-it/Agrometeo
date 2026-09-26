@@ -183,7 +183,7 @@ export default function SoilWaterCard({
         </div>
 
         {/* Métrica 3: Trafegabilidade de Máquinas */}
-        <div className="soil-metric-card" style={{ gridColumn: 'span 2' }}>
+        <div className="soil-metric-card full-width">
           <div className="soil-metric-icon" style={{ color: balance.trafficability.badgeColor, backgroundColor: `${balance.trafficability.badgeColor}22` }}>
             <Truck size={18} />
           </div>
