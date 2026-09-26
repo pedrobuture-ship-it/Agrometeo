@@ -46,6 +46,15 @@ export default function InstallPWAButton() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!showInstructions) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setShowInstructions(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showInstructions]);
+
   // Se já estiver instalado ou rodando como PWA nativo, não exibe o botão
   if (isStandalone || isInstalled) {
     return null;
@@ -80,7 +89,7 @@ export default function InstallPWAButton() {
 
       {/* Modal de Instruções de Instalação (para iOS e outros navegadores) */}
       {showInstructions && (
-        <div className="modal-overlay" onClick={() => setShowInstructions(false)}>
+        <div className="modal-overlay install-modal-overlay" onClick={() => setShowInstructions(false)}>
           <div 
             className="modal-content install-modal-content" 
             onClick={(e) => e.stopPropagation()}
@@ -90,13 +99,11 @@ export default function InstallPWAButton() {
             <div className="modal-header">
               <div className="modal-title-group">
                 <div className="modal-icon-badge">
-                  <Smartphone size={22} color="#007AFF" />
+                  <Smartphone size={20} color="#007AFF" />
                 </div>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700 }}>
-                    Instalar o AgroMeteo
-                  </h3>
-                </div>
+                <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700 }}>
+                  Instalar o AgroMeteo
+                </h3>
               </div>
               <button 
                 type="button" 
@@ -111,48 +118,48 @@ export default function InstallPWAButton() {
             <div className="install-modal-body">
               {isIOS ? (
                 <div className="install-steps-list">
-                  <p style={{ fontSize: '0.86rem', color: 'var(--text-main)', marginBottom: 12 }}>
-                    Para instalar no seu <strong>iPhone</strong> ou <strong>iPad</strong> via Safari:
+                  <p className="install-guide-lead">
+                    No seu <strong>iPhone</strong> ou <strong>iPad</strong> pelo Safari:
                   </p>
                   
                   <div className="install-step-item">
                     <span className="step-number">1</span>
                     <div className="step-text">
-                      Toque no botão de <strong>Compartilhar</strong> <Share size={14} style={{ display: 'inline', verticalAlign: 'middle', margin: '0 2px' }} /> na barra inferior do Safari.
+                      Toque no botão <strong>Compartilhar</strong> <Share size={13} style={{ display: 'inline', verticalAlign: 'middle', margin: '0 2px' }} /> no menu inferior do Safari.
                     </div>
                   </div>
 
                   <div className="install-step-item">
                     <span className="step-number">2</span>
                     <div className="step-text">
-                      Role as opções para baixo e selecione <strong>"Adicionar à Tela de Início"</strong>.
+                      Role as opções e toque em <strong>"Adicionar à Tela de Início"</strong>.
                     </div>
                   </div>
 
                   <div className="install-step-item">
                     <span className="step-number">3</span>
                     <div className="step-text">
-                      Toque em <strong>"Adicionar"</strong> no canto superior direito para concluir.
+                      Toque em <strong>"Adicionar"</strong> no canto superior direito para fixar o app.
                     </div>
                   </div>
                 </div>
               ) : (
                 <div className="install-steps-list">
-                  <p style={{ fontSize: '0.86rem', color: 'var(--text-main)', marginBottom: 12 }}>
+                  <p className="install-guide-lead">
                     Para instalar no seu computador ou celular Android:
                   </p>
 
                   <div className="install-step-item">
                     <span className="step-number">1</span>
                     <div className="step-text">
-                      No <strong>Chrome ou Edge (computador)</strong>, clique no ícone de instalação <Download size={14} style={{ display: 'inline', verticalAlign: 'middle', margin: '0 2px' }} /> na barra de endereços (ao lado dos favoritos).
+                      No <strong>Chrome ou Edge</strong>, clique no ícone de instalação <Download size={13} style={{ display: 'inline', verticalAlign: 'middle', margin: '0 2px' }} /> na barra de endereços.
                     </div>
                   </div>
 
                   <div className="install-step-item">
                     <span className="step-number">2</span>
                     <div className="step-text">
-                      No <strong>Android</strong>, toque no menu de três pontos do navegador e selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela inicial"</strong>.
+                      No <strong>Android</strong>, abra o menu (três pontos) e selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela inicial"</strong>.
                     </div>
                   </div>
                 </div>
@@ -160,26 +167,18 @@ export default function InstallPWAButton() {
 
               <div className="install-benefits-box">
                 <div className="benefit-item">
-                  <CheckCircle2 size={15} color="#34C759" />
-                  <span>Acesso instantâneo e direto da sua tela inicial</span>
-                </div>
-                <div className="benefit-item">
-                  <CheckCircle2 size={15} color="#34C759" />
-                  <span>Navegação em tela cheia como aplicativo nativo</span>
-                </div>
-                <div className="benefit-item">
-                  <CheckCircle2 size={15} color="#34C759" />
-                  <span>Consulta de dados salvos offline em áreas sem sinal</span>
+                  <CheckCircle2 size={14} color="#34C759" />
+                  <span>Acesso direto da tela inicial • Tela cheia • Offline</span>
                 </div>
               </div>
             </div>
 
-            <div className="modal-actions" style={{ marginTop: 18 }}>
+            <div className="modal-actions" style={{ marginTop: 12 }}>
               <button 
                 type="button" 
                 className="btn-primary" 
                 onClick={() => setShowInstructions(false)}
-                style={{ width: '100%' }}
+                style={{ width: '100%', padding: '10px 14px', fontSize: '0.88rem' }}
               >
                 Entendido
               </button>
