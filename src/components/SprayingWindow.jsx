@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Droplet, Wind, Thermometer, CheckCircle2, AlertTriangle, XCircle, Info } from 'lucide-react';
+import { Droplet, Wind, Thermometer, CheckCircle2, AlertTriangle, XCircle, Info, ChevronDown } from 'lucide-react';
 import { evaluateSprayingCondition } from '../services/openMeteo';
 
 export default function SprayingWindow({ hourly, dayIndex }) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const [selectedHour, setSelectedHour] = useState(null);
 
   if (!hourly) return null;
@@ -46,8 +47,13 @@ export default function SprayingWindow({ hourly, dayIndex }) {
     : operationalHours[2] || operationalHours[0]; // por volta das 08h
 
   return (
-    <div className="spraying-module">
-      <div className="spraying-header">
+    <div className={`spraying-module ${isExpanded ? 'is-expanded' : 'is-collapsed'}`}>
+      <div 
+        className={`spraying-header ${isExpanded ? 'expanded' : 'collapsed'}`}
+        onClick={() => setIsExpanded(!isExpanded)}
+        style={{ cursor: 'pointer', userSelect: 'none' }}
+        title={isExpanded ? 'Clique para recolher janela horária' : 'Clique para expandir janela horária'}
+      >
         <div className="spraying-title-group">
           <span className="spraying-icon-badge">
             <Droplet size={15} />
@@ -55,84 +61,104 @@ export default function SprayingWindow({ hourly, dayIndex }) {
           <h4>Janela de Pulverização (Delta T)</h4>
         </div>
 
-        <div className="spraying-summary-badges">
-          {favorableCount > 0 && (
-            <span className="badge-pill favorable" title="Horas favoráveis">
-              <CheckCircle2 size={12} /> {favorableCount}h ideais
-            </span>
-          )}
-          {marginalCount > 0 && (
-            <span className="badge-pill marginal" title="Horas marginais">
-              <AlertTriangle size={12} /> {marginalCount}h atenção
-            </span>
-          )}
-          {inadequateCount > 0 && (
-            <span className="badge-pill inadequate" title="Horas inadequadas">
-              <XCircle size={12} /> {inadequateCount}h impróprias
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Régua Horária Diurna (06h às 19h) */}
-      <div className="spraying-timeline">
-        {operationalHours.map((item) => {
-          const isSelected = activeDetail?.hourLabel === item.hourLabel;
-          return (
-            <button
-              key={item.hourLabel}
-              type="button"
-              className={`timeline-chip ${item.condition.status} ${isSelected ? 'selected' : ''}`}
-              onClick={() => setSelectedHour(item.hourLabel)}
-              title={`${item.hourLabel} — ${item.condition.label}: ${item.condition.reason}`}
-            >
-              <span className="chip-hour">{item.hourLabel.replace(':00', 'h')}</span>
-              <span className="chip-indicator"></span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Card de Detalhe da Hora Selecionada */}
-      {activeDetail && (
-        <div className={`spraying-detail-card ${activeDetail.condition.status}`}>
-          <div className="detail-top-row">
-            <div className="detail-status">
-              <span className={`status-badge-dot ${activeDetail.condition.status}`}></span>
-              <strong>{activeDetail.hourLabel}</strong> — 
-              <span className="status-name">{activeDetail.condition.label}</span>
-            </div>
-            {activeDetail.condition.deltaT != null && (
-              <span className="delta-t-tag" title="Delta T = Temperatura do Ar - Temperatura de Bulbo Úmido">
-                ΔT: {activeDetail.condition.deltaT}°C
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <div className="spraying-summary-badges">
+            {favorableCount > 0 && (
+              <span className="badge-pill favorable" title="Horas favoráveis">
+                <CheckCircle2 size={12} /> {favorableCount}h ideais
+              </span>
+            )}
+            {marginalCount > 0 && (
+              <span className="badge-pill marginal" title="Horas marginais">
+                <AlertTriangle size={12} /> {marginalCount}h atenção
+              </span>
+            )}
+            {inadequateCount > 0 && (
+              <span className="badge-pill inadequate" title="Horas inadequadas">
+                <XCircle size={12} /> {inadequateCount}h impróprias
               </span>
             )}
           </div>
 
-          <p className="detail-reason">{activeDetail.condition.reason}</p>
+          <button
+            type="button"
+            className="btn-card-toggle"
+            aria-label={isExpanded ? 'Recolher janela de pulverização' : 'Expandir janela de pulverização'}
+          >
+            <ChevronDown
+              size={18}
+              className={`toggle-icon ${isExpanded ? 'open' : ''}`}
+            />
+          </button>
+        </div>
+      </div>
 
-          <div className="detail-metrics-row">
-            <div className="metric-chip">
-              <Thermometer size={13} />
-              <span>{activeDetail.temp != null ? `${activeDetail.temp}°C` : '-'}</span>
+      {isExpanded && (
+        <div className="spraying-body">
+          {/* Régua Horária Diurna (06h às 19h) */}
+          <div className="spraying-timeline">
+            {operationalHours.map((item) => {
+              const isSelected = activeDetail?.hourLabel === item.hourLabel;
+              return (
+                <button
+                  key={item.hourLabel}
+                  type="button"
+                  className={`timeline-chip ${item.condition.status} ${isSelected ? 'selected' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedHour(item.hourLabel);
+                  }}
+                  title={`${item.hourLabel} — ${item.condition.label}: ${item.condition.reason}`}
+                >
+                  <span className="chip-hour">{item.hourLabel.replace(':00', 'h')}</span>
+                  <span className="chip-indicator"></span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Card de Detalhe da Hora Selecionada */}
+          {activeDetail && (
+            <div className={`spraying-detail-card ${activeDetail.condition.status}`}>
+              <div className="detail-top-row">
+                <div className="detail-status">
+                  <span className={`status-badge-dot ${activeDetail.condition.status}`}></span>
+                  <strong>{activeDetail.hourLabel}</strong> — 
+                  <span className="status-name">{activeDetail.condition.label}</span>
+                </div>
+                {activeDetail.condition.deltaT != null && (
+                  <span className="delta-t-tag" title="Delta T = Temperatura do Ar - Temperatura de Bulbo Úmido">
+                    ΔT: {activeDetail.condition.deltaT}°C
+                  </span>
+                )}
+              </div>
+
+              <p className="detail-reason">{activeDetail.condition.reason}</p>
+
+              <div className="detail-metrics-row">
+                <div className="metric-chip">
+                  <Thermometer size={13} />
+                  <span>{activeDetail.temp != null ? `${activeDetail.temp}°C` : '-'}</span>
+                </div>
+                <div className="metric-chip">
+                  <Droplet size={13} />
+                  <span>{activeDetail.rh != null ? `${activeDetail.rh}% UR` : '-'}</span>
+                </div>
+                <div className="metric-chip">
+                  <Wind size={13} />
+                  <span>{activeDetail.wind != null ? `${activeDetail.wind} km/h` : '-'}</span>
+                </div>
+              </div>
             </div>
-            <div className="metric-chip">
-              <Droplet size={13} />
-              <span>{activeDetail.rh != null ? `${activeDetail.rh}% UR` : '-'}</span>
-            </div>
-            <div className="metric-chip">
-              <Wind size={13} />
-              <span>{activeDetail.wind != null ? `${activeDetail.wind} km/h` : '-'}</span>
-            </div>
+          )}
+
+          {/* Nota agronômica explicativa */}
+          <div className="spraying-footnote">
+            <Info size={12} />
+            <span>Delta T ideal: 2°C a 8°C • Vento: &lt; 10 km/h • Umidade: &gt; 50%</span>
           </div>
         </div>
       )}
-
-      {/* Nota agronômica explicativa */}
-      <div className="spraying-footnote">
-        <Info size={12} />
-        <span>Delta T ideal: 2°C a 8°C • Vento: &lt; 10 km/h • Umidade: &gt; 50%</span>
-      </div>
     </div>
   );
 }
