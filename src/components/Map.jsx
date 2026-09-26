@@ -79,7 +79,23 @@ export default function Map({ selectedPoint, onSelectPoint }) {
       'OpenStreetMap': osmFr,
     };
 
-    L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
+    const layerControl = L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
+
+    // No mobile, fecha o seletor automaticamente após o usuário escolher uma camada
+    map.on('baselayerchange', () => {
+      if (window.innerWidth <= 768) {
+        layerControl.collapse();
+      }
+    });
+
+    // Se o usuário clicar na área de busca do mapa, fecha o seletor de camadas
+    const searchContainer = mapContainerRef.current?.parentElement?.querySelector('.map-search-container');
+    const handleSearchClick = () => {
+      layerControl.collapse();
+    };
+    if (searchContainer) {
+      searchContainer.addEventListener('click', handleSearchClick);
+    }
 
     map.on('click', (e) => {
       const { lat, lng } = e.latlng;
@@ -92,6 +108,9 @@ export default function Map({ selectedPoint, onSelectPoint }) {
     }, 200);
 
     return () => {
+      if (searchContainer) {
+        searchContainer.removeEventListener('click', handleSearchClick);
+      }
       map.remove();
       mapInstanceRef.current = null;
     };

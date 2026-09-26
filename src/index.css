@@ -245,6 +245,10 @@ body.dark .uepg-logo-wrapper {
   width: min(380px, calc(100% - 130px));
 }
 
+.map-search-container:focus-within {
+  z-index: 1010;
+}
+
 .map-search-bar {
   display: flex;
   align-items: center;
@@ -1557,28 +1561,54 @@ body.dark .item-card.is-pinned {
 
 /* Leaflet Custom Overrides & Dark Mode */
 .leaflet-top,
-.leaflet-bottom,
+.leaflet-bottom {
+  z-index: 1000 !important;
+}
+
 .leaflet-control {
-  z-index: 500 !important;
+  z-index: 1000 !important;
 }
 
 .leaflet-control-layers {
   border: 1px solid var(--border-color) !important;
   border-radius: 12px !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;
   font-family: inherit !important;
   font-size: 0.85rem !important;
   font-weight: 500 !important;
   background: var(--card-bg) !important;
   color: var(--text-main) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
   padding: 6px 10px !important;
   transition: background-color 0.25s ease, color 0.25s ease;
+  z-index: 1000 !important;
+}
+
+.leaflet-control-layers-expanded {
+  z-index: 1005 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45) !important;
+  border: 1px solid var(--border-color) !important;
+  padding: 8px 12px !important;
+  max-width: calc(100vw - 70px) !important;
 }
 
 .leaflet-control-layers label {
   color: var(--text-main) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+  padding: 4px 2px !important;
+  margin: 2px 0 !important;
+  font-size: 0.84rem !important;
+}
+
+.leaflet-control-layers-base label input[type="radio"] {
+  accent-color: var(--primary-blue);
+  cursor: pointer;
+  margin: 0;
 }
 
 body.dark .leaflet-control-zoom a {
