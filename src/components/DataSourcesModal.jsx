@@ -47,9 +47,6 @@ export default function DataSourcesModal({ onClose }) {
             </div>
             <div>
               <h3 id="data-sources-modal-title">Origem dos Dados & Metodologia de Cálculos</h3>
-              <p className="modal-subtitle">
-                Transparência meteorológica e equações agronômicas aplicadas no AgroMeteo
-              </p>
             </div>
           </div>
           <button 
@@ -526,11 +523,8 @@ export default function DataSourcesModal({ onClose }) {
           </div>
         )}
 
-        {/* Rodapé do Modal com Fechamento e Créditos */}
+        {/* Rodapé do Modal com Fechamento */}
         <div className="modal-footer data-sources-footer">
-          <div className="footer-citation">
-            Desenvolvido para apoio à pesquisa agronômica e extensão rural na <strong>UEPG (Universidade Estadual de Ponta Grossa)</strong>.
-          </div>
           <button type="button" className="btn-action-solid" onClick={onClose}>
             Entendido
           </button>
