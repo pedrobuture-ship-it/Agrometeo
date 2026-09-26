@@ -122,6 +122,40 @@ header {
   color: var(--primary-blue);
 }
 
+/* Botão de Instalação PWA */
+.pwa-install-btn {
+  background: rgba(0, 122, 255, 0.12);
+  color: var(--primary-blue);
+  border: 1px solid rgba(0, 122, 255, 0.35);
+  padding: 7px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.pwa-install-btn:hover {
+  background: var(--primary-blue);
+  color: #FFFFFF;
+  border-color: var(--primary-blue);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.pwa-install-icon {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.pwa-install-btn:hover .pwa-install-icon {
+  transform: translateY(1px);
+}
+
 /* Botão de Alternar Modo Escuro & Botão de Informações/Metodologia */
 .theme-toggle-btn,
 .info-toggle-btn {
@@ -1031,6 +1065,75 @@ body.dark .item-card.is-pinned {
 
 .btn-primary:hover {
   background: var(--primary-blue-hover);
+}
+
+/* Modal de Instruções de Instalação PWA */
+.install-modal-content {
+  max-width: 480px;
+  width: 95%;
+  padding: 24px;
+}
+
+.install-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.install-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.install-step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--item-bg);
+  border: 1px solid var(--border-color);
+  padding: 11px 13px;
+  border-radius: 12px;
+}
+
+.step-number {
+  background: var(--primary-blue);
+  color: white;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.step-text {
+  font-size: 0.83rem;
+  color: var(--text-main);
+  line-height: 1.45;
+}
+
+.install-benefits-box {
+  background: rgba(52, 199, 89, 0.08);
+  border: 1px solid rgba(52, 199, 89, 0.25);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.benefit-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: var(--text-main);
+  font-weight: 500;
 }
 
 /* Modal de Origem dos Dados e Metodologia de Cálculos */
@@ -2630,11 +2733,13 @@ body.dark .marker-pin {
     gap: 8px;
   }
 
+  .pwa-install-btn span,
   .info-toggle-btn span,
   .theme-toggle-btn span {
     display: none;
   }
 
+  .pwa-install-btn,
   .info-toggle-btn,
   .theme-toggle-btn {
     padding: 7px 9px;

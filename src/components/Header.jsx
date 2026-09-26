@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sun, Moon, Info } from 'lucide-react';
 import DataSourcesModal from './DataSourcesModal';
+import InstallPWAButton from './InstallPWAButton';
 
 export default function Header({ theme, onToggleTheme }) {
   const [isInfoOpen, setIsInfoOpen] = useState(false);
@@ -14,6 +15,9 @@ export default function Header({ theme, onToggleTheme }) {
         </div>
 
         <div className="header-links">
+          {/* Botão de Instalar App PWA (visível apenas ao acessar via navegador) */}
+          <InstallPWAButton />
+
           {/* Botão de Origem dos Dados & Metodologia de Cálculos */}
           <button
             type="button"

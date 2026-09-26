@@ -57,7 +57,8 @@ O **AgroMeteo** é uma Progressive Web Application (PWA) desenvolvida para atend
 * **Exportação CSV**: Download de planilhas de dados climáticos brutos compatíveis com Excel.
 
 ### 8. PWA (Progressive Web App)
-* **Instalável na Tela Inicial**: Ícones nativos em alta resolução (`192x192`, `512x512` e `apple-touch-icon`).
+* **Instalável na Tela Inicial**: Botão dinâmico no cabeçalho ao acessar via navegador, com suporte a instalação nativa direta (Chrome, Edge, Android) e guia passo a passo para iOS (Safari).
+* **Ícones Nativos**: Pacote de ícones em alta resolução (`192x192`, `512x512` e `apple-touch-icon`).
 * **Cache Offline (`sw.js`)**: Permite carregar a aplicação mesmo sem conexão de dados móveis no campo.
 
 ### 9. Transparência de Dados e Metodologia Científica
